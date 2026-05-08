@@ -40,3 +40,29 @@ Record a short [Loom video](https://www.loom.com) showing how it works, includin
 ### 4. Deadline
 
 Please complete and submit the result within 24 hours unless otherwise discussed.
+
+## Implementation Summary
+
+The `Token.sol` contract has been fully implemented to satisfy the requirements and pass the complete Hardhat test suite (`11 passing`).
+
+### What was implemented
+
+- Full ERC-20 core behavior required by the tests:
+  - `approve`, `allowance`, `transfer`, and `transferFrom`.
+- Minting and burning flow:
+  - `mint()` mints tokens 1:1 with deposited ETH.
+  - `burn(dest)` burns the caller's full token balance and sends the equivalent ETH to `dest`.
+- Dividend accounting:
+  - `recordDividend()` distributes incoming ETH proportionally to current token balances.
+  - `getWithdrawableDividend()` returns each account's accrued but unclaimed dividend.
+  - `withdrawDividend(dest)` transfers the caller's accrued dividend and resets their withdrawable amount.
+- Efficient token-holder tracking:
+  - Active holders are tracked with an array plus index mapping.
+  - Holder removal uses swap-and-pop to keep updates O(1).
+  - Holder list is updated on mint, burn, and transfer balance changes.
+
+### Why this design
+
+- **Correctness with test expectations:** Every required behavior in `test/token.test.js` is covered, including transfer rules, allowance handling, proportional dividend compounding, and withdrawal after token relinquishment.
+- **Gas-aware holder maintenance:** The array + index mapping + swap-and-pop pattern avoids costly array shifts and keeps holder management simple and efficient.
+- **Clear state separation:** Token balances, allowances, holder membership, and withdrawable dividends are maintained independently, reducing coupling and making behavior easier to reason about and maintain.
